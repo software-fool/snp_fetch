@@ -61,8 +61,3 @@ found genome build GRCh38 using Base Position
 Number of missing rsIDs 2
 ```
 
-
-```
-$ source snpvenv/bin/activate
-```
-
