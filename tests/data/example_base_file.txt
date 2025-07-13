@@ -1,0 +1,4 @@
+rs1234	x	y	z
+rs1235	x	y	z
+rs987654321	x	y	z
+rs1111111	x	y	z
