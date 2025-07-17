@@ -4,19 +4,25 @@ import gzip
 from argparse import ArgumentParser
 from collections import defaultdict
 
-
+def process_one_file(fob, id_map, fname):
+    for line in fob.readlines():
+        line = line.strip()
+        if line.startswith("#"):
+            continue
+        words = line.split()
+        rsid = words[0]
+        if re.match(r"^rs\d+", rsid):
+            id_map[rsid].append(fname)
+    
 def process_files(files: list[str]):
     id_map = defaultdict(list)
     for fname in files:
-        with gzip.open(fname, "rt") as fob:
-            for line in fob.readlines():
-                line = line.strip()
-                if line.startswith("#"):
-                    continue
-                words = line.split()
-                rsid = words[0]
-                if re.match(r"^rs\d+", rsid):
-                    id_map[rsid].append(fname)
+        if fname.endswith(".gz"):
+            with gzip.open(fname, "rt") as fob:
+                process_one_file(fob, id_map, fname)
+        else:
+            with open(fname, "rt") as fob:
+                process_one_file(fob, id_map, fname)
     return id_map
 
 def summarize_results(id_map: dict[str, list[str]], filter: int = 2):
@@ -44,6 +50,14 @@ def main(cla):
         help="Print results as a tab delimited table for easier ingestion to other tools",
     )
     parser.add_argument(
+        "-f",
+        "--filter",
+        metavar="NUM",
+        type=int,
+        default=2,
+        help="List only rsids appearing at least NUM times, default=2"
+    )
+    parser.add_argument(
         "files",
         metavar="FILE",
         nargs="+",
@@ -54,7 +68,7 @@ def main(cla):
         print(f"{sys.argv[0]}: cannot specify both table and list together")
         return 1
     id_map = process_files(args.files)
-    order = summarize_results(id_map)
+    order = summarize_results(id_map, args.filter)
     count = 0
     if args.table:
         print("rsID\tcount")
