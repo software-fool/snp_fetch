@@ -3,16 +3,21 @@ import re
 import gzip
 from argparse import ArgumentParser
 from collections import defaultdict
+from warnings import warn
 
 def process_one_file(fob, id_map, fname):
-    for line in fob.readlines():
+    for line_no, line in enumerate(fob.readlines()):
         line = line.strip()
         if line.startswith("#"):
             continue
         words = line.split()
-        rsid = words[0]
-        if re.match(r"^rs\d+", rsid):
-            id_map[rsid].append(fname)
+        if words:
+            rsid = words[0]
+            if re.match(r"^rs\d+", rsid):
+                id_map[rsid].append(fname)
+        else:
+            msg = f"found empty line in {fname} at line {line_no}"
+            warn(msg)
     
 def process_files(files: list[str]):
     id_map = defaultdict(list)
